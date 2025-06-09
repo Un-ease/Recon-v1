@@ -3,7 +3,7 @@ import os
 import time
 import threading
 import json
-
+import re
 
 Resolvers_path = os.path.expanduser('~/Tools/resolvers_trusted.txt')
 
@@ -108,3 +108,67 @@ def dns_resolve(save_directory):
                 f.write(entry['name'].rstrip('.') + '\n')
 
     print(f"[+] Resolved Domains saved at {save_directory}/resolved_domains.txt ")
+
+def httpx_prove(save_directory):
+    resolved_file = os.path.join(save_directory, 'resolved.txt')
+    httpx_output = os.path.join(save_directory, 'httpx-toolkit.txt')
+    code_200_file = os.path.join(save_directory, '200.txt')
+    plain_file = os.path.join(save_directory, 'plain.txt')
+
+    print("Checking For live servers")
+
+    try:
+        subprocess.run([
+            "httpx",
+            "-l", resolved_file,
+            "-silent",
+            "-status-code",
+            "-title",
+            "-tech-detect",
+            "-o", httpx_output
+        ], check=True)
+    except subprocess.CalledProcessError:
+        print("HTTP probing failed")
+        return
+
+    total = sum(1 for _ in open(httpx_output))
+    print(f"[+] Total live subdomains: {total}")
+
+
+    with open(httpx_output, 'r', encoding='utf-8') as infile, open(code_200_file, 'w') as outfile:
+        for line in infile:
+            clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line)
+            if '[200]' in clean_line:
+                outfile.write(clean_line)
+
+    code_200_total = sum(1 for _ in open(code_200_file))
+    print(f"[+] 200 status code domains: {code_200_total}")
+
+    # Extract URLs from 200.txt
+    with (open(code_200_file, 'r', encoding='utf-8') as infile, open(plain_file, 'w') as outfile):
+        for line in infile:
+            if parts := line.split():
+                outfile.write(parts[0] + '\n')
+
+    # Take screenshots with httpx
+    print("[+] Taking screenshots...")
+    subprocess.run([
+        "httpx-toolkit",
+        "-l", plain_file,
+        "-silent",
+        "-screenshot",
+        "-srd", save_directory
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    print(f"[+] Screenshots saved in {save_directory}")
+
+
+if __name__ == "__main__":
+    print(banner())
+    target = input("Enter the Target Domain:")
+    directory = input("Enter the Directory where you want the output to be saved")
+
+    os.makedirs(directory, exist_ok=True)
+    sub_enum(target,directory)
+    dns_resolve(directory)
+    httpx_prove(directory)
