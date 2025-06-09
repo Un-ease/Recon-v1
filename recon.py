@@ -63,14 +63,14 @@ def sub_enum(domain, save_directory):
         loading_thread.join()
         print(f"\rAssetFinder {'Completed Successfully' if result.returncode == 0  else 'failed'}. Output saved in {save_directory}/subdomain2.txt")
 
-        print("Merging Subdomains")
+        print("\nMerging Subdomains")
         merge_cmd = f"sort -u {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt > {save_directory}/domain.txt"
         remove_cmd = f"rm {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt"
     
         subprocess.run(merge_cmd, shell=True)
         subprocess.run(remove_cmd, shell=True)
 
-        print(f"Unique Subdomains Saved at {save_directory}/domain.txt")
+        print(f"\nUnique Subdomains Saved at {save_directory}/domain.txt")
 
     except Exception as e:
         print(f"\rError running subdomain tools: {str(e)}")
@@ -107,13 +107,13 @@ def dns_resolve(save_directory):
             if 'name'in entry:
                 f.write(entry['name'].rstrip('.') + '\n')
 
-    print(f"[+] Resolved Domains saved at {save_directory}/resolved_domains.txt ")
+    print(f"\n[+] Resolved Domains saved at {save_directory}/resolved_domains.txt ")
 
 def httpx_prove(save_directory):
-    resolved_file = os.path.join(save_directory, 'resolved.txt')
-    httpx_output = os.path.join(save_directory, 'httpx-toolkit.txt')
-    code_200_file = os.path.join(save_directory, '200.txt')
-    plain_file = os.path.join(save_directory, 'plain.txt')
+    resolved_file = f'{save_directory}/resolved_domains.txt'
+    httpx_output = f'{save_directory}/httpx-toolkit.txt'
+    code_200_file = f'{save_directory}/200.txt'
+    plain_file = f'{save_directory}/plain.txt'
 
     print("Checking For live servers")
 
