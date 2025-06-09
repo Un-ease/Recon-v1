@@ -65,7 +65,7 @@ def sub_enum(domain, save_directory):
 
         print("Merging Subdomains")
         merge_cmd = f"sort -u {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt > {save_directory}/domain.txt"
-        remove_cmd = f"rm {save_directory}subdomain1.txt {save_directory}/subdomain2.txt"
+        remove_cmd = f"rm {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt"
     
         subprocess.run(merge_cmd, shell=True)
         subprocess.run(remove_cmd, shell=True)
@@ -165,8 +165,8 @@ def httpx_prove(save_directory):
 
 if __name__ == "__main__":
     print(banner())
-    target = input("Enter the Target Domain:")
-    directory = input("Enter the Directory where you want the output to be saved")
+    target = input("Enter the Target Domain: ")
+    directory = input("Enter the Directory where you want the output to be saved: ")
 
     os.makedirs(directory, exist_ok=True)
     sub_enum(target,directory)
