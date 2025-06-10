@@ -189,7 +189,8 @@ def httpx_prove(save_directory):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=banner())
+    print(banner())
+    parser = argparse.ArgumentParser(description="Subdomain Enumeration & Recon Tool")
     parser.add_argument('-d', '--domain', required=True, help='Target domain (e.g., example.com)')
     parser.add_argument('-o', '--output', required=True, help='Output directory (e.g., results/)')
 
