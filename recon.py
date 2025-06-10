@@ -4,6 +4,7 @@ import time
 import threading
 import json
 import re
+import argparse
 
 Resolvers_path = os.path.expanduser('~/Tools/resolvers_trusted.txt')
 
@@ -63,20 +64,37 @@ def sub_enum(domain, save_directory):
         loading_thread.join()
         print(f"\rAssetFinder {'Completed Successfully' if result.returncode == 0  else 'failed'}. Output saved in {save_directory}/subdomain2.txt")
 
+        stop_event = threading.Event()
+        loading_thread = threading.Thread(target=loading_animation, args=(stop_event,))
+        loading_thread.start()
+
         print("\nMerging Subdomains")
-        merge_cmd = f"sort -u {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt > {save_directory}/domain.txt"
+        merge_cmd = f"sort -u {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt > {save_directory}/sub.txt"
         remove_cmd = f"rm {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt"
-    
+
         subprocess.run(merge_cmd, shell=True)
         subprocess.run(remove_cmd, shell=True)
 
-        print(f"\nUnique Subdomains Saved at {save_directory}/domain.txt")
+        print("\nFiltering domains")
+        domain_file = f"{save_directory}/sub.txt"
+        output = f"{save_directory}/domain.txt"
 
+        filter_cmd = f"cat {domain_file} | anew {output}"
+
+        subprocess.run(filter_cmd, shell=True)
+
+        print(f"\nUnique Subdomains Saved at {save_directory}/domain.txt")
+        stop_event.set()
+        loading_thread.join()
     except Exception as e:
         print(f"\rError running subdomain tools: {str(e)}")
 
 def dns_resolve(save_directory):
     print("\nResolving with MassDns")
+
+    stop_event = threading.Event()
+    loading_thread = threading.Thread(target=loading_animation, args=(stop_event,))
+    loading_thread.start()
 
     with open(f"{save_directory}/domain.txt","r") as f:
         domains = [line.strip() for line in f if line.strip()]
@@ -107,6 +125,9 @@ def dns_resolve(save_directory):
             if 'name'in entry:
                 f.write(entry['name'].rstrip('.') + '\n')
 
+    stop_event.set()
+    loading_thread.join()
+    
     print(f"\n[+] Resolved Domains saved at {save_directory}/resolved_domains.txt ")
 
 def httpx_prove(save_directory):
@@ -116,7 +137,9 @@ def httpx_prove(save_directory):
     plain_file = f'{save_directory}/plain.txt'
 
     print("Checking For live servers")
-
+    stop_event = threading.Event()
+    loading_thread = threading.Thread(target=loading_animation, args=(stop_event,))
+    loading_thread.start()
     try:
         subprocess.run([
             "httpx",
@@ -160,15 +183,29 @@ def httpx_prove(save_directory):
         "-srd", save_directory
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    stop_event.set()
+    loading_thread.join()
     print(f"[+] Screenshots saved in {save_directory}")
 
 
-if __name__ == "__main__":
-    print(banner())
-    target = input("Enter the Target Domain: ")
-    directory = input("Enter the Directory where you want the output to be saved: ")
+def main():
+    parser = argparse.ArgumentParser(description="Subdomain Enumeration & Recon Tool")
+    parser.add_argument('-d', '--domain', required=True, help='Target domain (e.g., example.com)')
+    parser.add_argument('-o', '--output', required=True, help='Output directory (e.g., results/)')
 
+    args = parser.parse_args()
+    target = args.domain
+    directory = args.output
+
+    print(f"[+] Starting recon on {target}")
+    print(f"[+] Output will be saved to {directory}")
     os.makedirs(directory, exist_ok=True)
     sub_enum(target,directory)
     dns_resolve(directory)
     httpx_prove(directory)
+
+
+if __name__ == "__main__":
+    main()
+
+    
