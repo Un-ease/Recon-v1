@@ -68,7 +68,7 @@ def sub_enum(domain, save_directory):
         loading_thread = threading.Thread(target=loading_animation, args=(stop_event,))
         loading_thread.start()
 
-        print("\nMerging Subdomains")
+        print("\n[+] Merging Subdomains")
         domain_file = f"{save_directory}/sub.txt"
         output = f"{save_directory}/domain.txt"
 
@@ -79,7 +79,7 @@ def sub_enum(domain, save_directory):
         subprocess.run(merge_cmd, shell=True)
         subprocess.run(filter_cmd, shell=True)
         subprocess.run(remove_cmd, shell=True)
-        print(f"\nUnique Subdomains Saved at {save_directory}/domain.txt")
+        print(f"\n[+] Unique Subdomains Saved at {save_directory}/domain.txt")
         stop_event.set()
         loading_thread.join()
     except Exception as e:
@@ -126,16 +126,14 @@ def dns_resolve(save_directory):
     
     print(f"\n[+] Resolved Domains saved at {save_directory}/resolved_domains.txt ")
 
-def httpx_prove(save_directory):
+def httpx_probe(save_directory):
     resolved_file = f'{save_directory}/resolved_domains.txt'
     httpx_output = f'{save_directory}/httpx-toolkit.txt'
     code_200_file = f'{save_directory}/200.txt'
     plain_file = f'{save_directory}/plain.txt'
 
-    print("Checking For live servers")
-    stop_event = threading.Event()
-    loading_thread = threading.Thread(target=loading_animation, args=(stop_event,))
-    loading_thread.start()
+    print("[+] Checking For live servers")
+
     try:
         subprocess.run([
             "httpx",
@@ -178,9 +176,7 @@ def httpx_prove(save_directory):
         "-screenshot",
         "-srd", save_directory
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    stop_event.set()
-    loading_thread.join()
+    
     print(f"[+] Screenshots saved in {save_directory}")
 
 
@@ -199,7 +195,7 @@ def main():
     os.makedirs(directory, exist_ok=True)
     sub_enum(target,directory)
     dns_resolve(directory)
-    httpx_prove(directory)
+    httpx_probe(directory)
 
 
 if __name__ == "__main__":
