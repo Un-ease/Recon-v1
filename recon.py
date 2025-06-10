@@ -69,20 +69,16 @@ def sub_enum(domain, save_directory):
         loading_thread.start()
 
         print("\nMerging Subdomains")
-        merge_cmd = f"sort -u {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt > {save_directory}/sub.txt"
-        remove_cmd = f"rm {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt"
-
-        subprocess.run(merge_cmd, shell=True)
-        subprocess.run(remove_cmd, shell=True)
-
-        print("\nFiltering domains")
         domain_file = f"{save_directory}/sub.txt"
         output = f"{save_directory}/domain.txt"
 
+        merge_cmd = f"sort -u {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt > {save_directory}/sub.txt"
+        remove_cmd = f"rm {save_directory}/subdomain1.txt {save_directory}/subdomain2.txt {save_directory}/sub.txt"
         filter_cmd = f"cat {domain_file} | anew {output}"
 
+        subprocess.run(merge_cmd, shell=True)
         subprocess.run(filter_cmd, shell=True)
-
+        subprocess.run(remove_cmd, shell=True)
         print(f"\nUnique Subdomains Saved at {save_directory}/domain.txt")
         stop_event.set()
         loading_thread.join()
