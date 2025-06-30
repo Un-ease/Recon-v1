@@ -156,8 +156,13 @@ def httpx_probe(save_directory):
     with open(httpx_output, 'r', encoding='utf-8') as infile, open(code_200_file, 'w') as outfile:
         for line in infile:
             clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line)
-            if '[200]' in clean_line:
-                outfile.write(clean_line)
+            match = re.search(r'\[(.*?)\]', clean_line)
+            if match:
+                status_codes = match.group(1).split(',')
+                final_status = status_codes[-1].strip()
+                if final_status in ('200', '202'):
+                    outfile.write(clean_line)
+
 
     code_200_total = sum(1 for _ in open(code_200_file))
     print(f"[+] 200 status code domains: {code_200_total}")
