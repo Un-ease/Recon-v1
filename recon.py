@@ -141,6 +141,7 @@ def httpx_probe(save_directory):
             "-silent",
             "-status-code",
             "-title",
+            '-follow-redirects',
             "-tech-detect",
             "-o", httpx_output
         ], check=True)
