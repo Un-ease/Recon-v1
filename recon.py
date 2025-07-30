@@ -176,7 +176,7 @@ def httpx_probe(save_directory):
     # Take screenshots with httpx
     print("[+] Taking screenshots...")
     subprocess.run([
-        "httpx-toolkit",
+        "httpx",
         "-l", plain_file,
         "-silent",
         "-screenshot",
